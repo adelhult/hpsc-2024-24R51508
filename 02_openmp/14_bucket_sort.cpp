@@ -5,7 +5,7 @@
 // Parallel prefix sum (implementation taken from 11_scan.cpp)
 template <class T>
 std::vector<T> prefix_sum(std::vector<T> xs) {
-  std::vector<int> copy(xs.size());
+  std::vector<T> copy(xs.size());
   auto N = xs.size();
   
   #pragma omp parallel
