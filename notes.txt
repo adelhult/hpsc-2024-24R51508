@@ -1,7 +1,13 @@
+# Tsubame
 qrsh -g tga-hpc-lecture -l node_f=1 -l h_rt=1:30:00
 cd /gs/fs/tga-hpc-lecture/$USER/
 
-
+# MPI
 module load openmpi
 make 00_hello
 mpirun -np 4 ./a.out
+
+
+# SIMD (gcc, and Intel compiler)
+g++ 07_intrinsic_reduction.cpp -march=native -O3 -fopt-info-vec-optimized
+icpx 07_intrinsic_reduction.cpp -xCORE-AVX512
