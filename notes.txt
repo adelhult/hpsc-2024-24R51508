@@ -11,3 +11,6 @@ mpirun -np 4 ./a.out
 # SIMD (gcc, and Intel compiler)
 g++ 07_intrinsic_reduction.cpp -march=native -O3 -fopt-info-vec-optimized
 icpx 07_intrinsic_reduction.cpp -xCORE-AVX512
+
+# Cuda
+module load cuda
