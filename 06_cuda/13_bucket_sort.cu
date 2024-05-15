@@ -80,40 +80,19 @@ int main() {
   }
 
   cudaDeviceSynchronize();
-  printf("Buckets before:\n");
-  for (int i=0; i<range; i++) {
-    printf("%d ",buckets[i]);
-  }
-  printf("\n");
   // Now, let's actualy start the bucket sort
 
   frequency<<<1,n>>>(keys, buckets, n); // TODO nr threads
   cudaDeviceSynchronize();
-  printf("Buckets after:\n");
-  for (int i=0; i<range; i++) {
-    printf("%d ",buckets[i]);
-  }
-  printf("\n");
 
   int *temp;
   cudaMalloc(&temp, range * sizeof(int));
   std::memcpy(offsets, buckets, range * sizeof(int));
   prefix_sum<<<1, range>>>(offsets, temp, range);
   cudaDeviceSynchronize();
-  printf("Offsets:\n");
-  for (int i=0; i<range; i++) {
-    printf("%d ",offsets[i]);
-  }
-  printf("\n");
 
   make_exclusive<<<1, range>>>(offsets, buckets, range);
   cudaDeviceSynchronize();
-  printf("Offsets exclusive:\n");
-  for (int i=0; i<range; i++) {
-    printf("%d ",offsets[i]);
-  }
-  printf("\n");
-
 
   sort<<<1, range>>>(keys, buckets, offsets, range);
   cudaDeviceSynchronize();
