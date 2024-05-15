@@ -12,7 +12,7 @@
 //          but I want to keep things simple so I understand what I'm doing :)
 // 4. Finally, go through the list and sort the list in parallel using the offsets
 
-// Fill the buckets by counting the frequency of each value in the array 'xs'
+// Fill the buckets by counting the frequency of each value in the array 'keys'
 __global__ void frequency(int *keys, int *buckets, int len) {
   const auto i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= len) {
@@ -59,7 +59,7 @@ __global__ void sort(int *keys, int *buckets, int *offsets, int len) {
 }
 
 int main() {
-  const int n = 10;
+  const int n = 50;
   const int range = 5;
   
   int *keys, *buckets, *offsets;
