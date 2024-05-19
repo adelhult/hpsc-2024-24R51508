@@ -14,3 +14,9 @@ icpx 07_intrinsic_reduction.cpp -xCORE-AVX512
 
 # Cuda
 module load cuda
+
+# HDF
+module switch openmpi hdf5-parallel
+export CPATH=$CPATH:/apps/t4/rhel9/free/hdf5-parallel/1.14.3/gcc11.4.1/include/
+g++ 14_hdf5_write.cpp -lhdf5
+mpicxx 16_phdf5_write.cpp -lhdf5
