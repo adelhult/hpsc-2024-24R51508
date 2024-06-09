@@ -89,7 +89,6 @@ for n in range(nt):
         assert ((read_file("./output/u.txt") - u) < error_margin).all()
         assert ((read_file("./output/v.txt") -v) < error_margin).all()
         assert ((read_file("./output/p.txt") -p) < error_margin).all()
-        print((read_file("./output/b.txt") - b) < error_margin)
         assert ((read_file("./output/b.txt") - b) < error_margin).all()
         break
 

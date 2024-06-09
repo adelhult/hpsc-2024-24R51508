@@ -153,23 +153,16 @@ int main() {
         const auto cols = u.columns_count();
         const auto rows = u.row_count();
 
-        // u[0, :]  = 0
         for (auto j = 0; j < cols; ++j) {
-            u(0, j) = 0;
-        }
-        for (auto i = 0; i < rows; ++i) {
-            u(i, 0) = 0;      // u[:, 0]  = 0
-            u(i, cols-1) = 0; // u[:, -1] = 0
-        }
-        for (auto j = 0; j < cols; ++j) {
+            u(0, j) = 0;      // u[0, :]  = 0
             u(rows-1, j) = 1; // u[-1, :] = 1
-        }
-
-        for (auto j = 0; j < cols; ++j) {
             v(0, j) = 0;      // v[0, :]  = 0
             v(rows-1, j) = 0; // v[-1, :] = 0
         }
+        
         for (auto i = 0; i < rows; ++i) {
+            u(i, 0) = 0;      // u[:, 0]  = 0
+            u(i, cols-1) = 0; // u[:, -1] = 0
             v(i, 0) = 0;      // v[:, 0]  = 0
             v(i, cols-1) = 0; // v[:, -1] = 0
         }
