@@ -20,6 +20,27 @@ p = np.zeros((ny, nx))
 b = np.zeros((ny, nx))
 X, Y = np.meshgrid(x, y)
 
+# For easier debugging
+np.set_printoptions(threshold=np.inf)
+
+def parse_file(file_content):
+    """Parse the contents of a file into a numpy 2d array"""
+    dim, *lines = file_content.splitlines()
+    rows, cols = map(int, dim.split(" "))
+    
+    result = np.zeros((rows, cols))
+
+    for i, line in enumerate(lines):
+        for j, cell in enumerate(line.split(" ")):
+            result[i, j] = float(cell)
+    
+    return result
+
+def read_file(path):
+    """Read a file and parse it as numpy 2d array"""
+    with open(path, "r") as f:
+        return parse_file(f.read())
+
 for n in range(nt):
     for j in range(1, ny-1):
         for i in range(1, nx-1):
@@ -61,8 +82,19 @@ for n in range(nt):
     v[-1, :] = 0
     v[:, 0]  = 0
     v[:, -1] = 0
-    plt.contourf(X, Y, p, alpha=0.5, cmap=plt.cm.coolwarm)
-    plt.quiver(X[::2, ::2], Y[::2, ::2], u[::2, ::2], v[::2, ::2])
-    plt.pause(.01)
-    plt.clf()
-plt.show()
+
+    # Debugging
+    if (n == 5):
+        error_margin = 1e-3 # rounding differences? (At least I hopes so :sweat: !)
+        assert ((read_file("./output/u.txt") - u) < error_margin).all()
+        assert ((read_file("./output/v.txt") -v) < error_margin).all()
+        assert ((read_file("./output/p.txt") -p) < error_margin).all()
+        print((read_file("./output/b.txt") - b) < error_margin)
+        assert ((read_file("./output/b.txt") - b) < error_margin).all()
+        break
+
+    # plt.contourf(X, Y, p, alpha=0.5, cmap=plt.cm.coolwarm)
+    # plt.quiver(X[::2, ::2], Y[::2, ::2], u[::2, ::2], v[::2, ::2])
+    # plt.pause(.01)
+    # plt.clf()
+#plt.show()
