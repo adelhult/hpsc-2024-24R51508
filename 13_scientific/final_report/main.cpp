@@ -144,7 +144,7 @@ int main() {
 
                 v(j, i) = vn(j, i) - vn(j, i) * dt / dx * (vn(j, i) - vn(j, i - 1))
                                - vn(j, i) * dt / dy * (vn(j, i) - vn(j - 1, i))
-                               - dt / (2 * rho * dx) * (p(j+1, i) - p(j-1, i))
+                               - dt / (2 * rho * dy) * (p(j+1, i) - p(j-1, i))
                                + nu * dt / powf(dx,2) * (vn(j, i+1) - 2 * vn(j, i) + vn(j, i-1))
                                + nu * dt / powf(dy,2) * (vn(j+1, i) - 2 * vn(j, i) + vn(j-1, i));
             }
