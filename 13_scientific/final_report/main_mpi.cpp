@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
         first_row++;
     }
 
-    int last_row = nx + 1;
+    int last_row = local_ny + 1;
     // The last process has no use for the ghost row at the bottom
     if (rank == size - 1) {
         last_row--;
