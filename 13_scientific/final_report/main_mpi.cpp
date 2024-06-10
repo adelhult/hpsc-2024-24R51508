@@ -93,6 +93,7 @@ int main(int argc, char **argv) {
         local_ny++;
     }
 
+    std::cout << "local_ny: " << local_ny << std::endl;
     // We add an extra "ghost row" at the top and bottom (not really needed for the first and last row,
     // but let's keep it simple).
     auto u = Matrix<float>(local_ny + 2, nx, 0.0);
@@ -124,8 +125,8 @@ int main(int argc, char **argv) {
     for (auto n = 0; n < nt; n++) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
-                std::cout << j << ", " << i << std::endl; 
-                //b(j, i) = rank;
+                //std::cout << j << ", " << i << std::endl; 
+                b(j, i) = rank;
             }
         }
 
