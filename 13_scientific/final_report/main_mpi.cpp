@@ -124,6 +124,7 @@ int main(int argc, char **argv) {
     for (auto n = 0; n < nt; n++) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
+                std::cout << j ", " << i std::endl; 
                 b(j, i) = rank;
             }
         }
