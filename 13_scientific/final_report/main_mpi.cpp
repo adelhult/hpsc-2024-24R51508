@@ -99,7 +99,6 @@ int main(int argc, char **argv) {
     auto v = Matrix<float>(local_ny + 2, nx, 0.0);
     auto p = Matrix<float>(local_ny + 2, nx, 0.0);
     auto b = Matrix<float>(local_ny + 2, nx, 0.0);
-/*
     int first_row = 1;
     // The first process has no use for the ghost row at the top
     if (rank == 0) {
@@ -122,6 +121,7 @@ int main(int argc, char **argv) {
         b_full.emplace(ny, nx, 0.0);
     }
 
+/*
     for (auto n = 0; n < nt; n++) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
