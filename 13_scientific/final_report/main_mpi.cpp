@@ -121,18 +121,16 @@ int main(int argc, char **argv) {
         b_full.emplace(ny, nx, 0.0);
     }
 
-/*
     for (auto n = 0; n < nt; n++) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
                 b(j, i) = rank;
-              */
 /*  b(j, i) = rho * (1 / dt *
                                  ((u(j, i + 1) - u(j, i - 1)) / (2 * dx) + (v(j + 1, i) - v(j - 1, i)) / (2 * dy)) -
                                  powf((u(j, i + 1) - u(j, i - 1)) / (2 * dx), 2) -
                                  2 * ((u(j + 1, i) - u(j - 1, i)) / (2 * dy) *
                                       (v(j, i + 1) - v(j, i - 1)) / (2 * dx)) -
-                                 powf((v(j + 1, i) - v(j - 1, i)) / (2 * dy), 2));*//*
+                                 powf((v(j + 1, i) - v(j - 1, i)) / (2 * dy), 2));*/
 
             }
         }
@@ -142,11 +140,11 @@ int main(int argc, char **argv) {
             for (auto j = first_row; j < last_row; j++) {
                 for (auto i = 1; i < nx - 1; i++) {
                     p(j, i) = rank;
-               */
+               
 /*     p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
                                powf(dx, 2) * (pn(j + 1, i) + pn(j - 1, i)) -
                                b(j, i) * powf(dx, 2) * powf(dy, 2))
-                              / (2 * (powf(dx, 2) + powf(dy, 2)));*//*
+                              / (2 * (powf(dx, 2) + powf(dy, 2)));*/
 
                 }
             }
@@ -154,23 +152,22 @@ int main(int argc, char **argv) {
             // Gather the entire matrix at process 0 and then scatter the data again to update the ghost rows.
             // IMPORTANT NOTE: This adds a *lot* of needless overhead since we really only need to sync the ghost
             // rows in each iteration!
-            MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            // MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
+            //            MPI_FLOAT, 0, MPI_COMM_WORLD);
+            // MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
+            //            MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-            char *send_buffer = nullptr;
-            if (b_full) {
-                send_buffer = (char*)b_full->get();
-            }
-            MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
-                        b.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
-            if (b_full) {
-                send_buffer = (char*)p_full->get();
-            }
-            MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
-                        p.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
-*/
+            // char *send_buffer = nullptr;
+            // if (b_full) {
+            //     send_buffer = (char*)b_full->get();
+            // }
+            // MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
+            //             b.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
+            // if (b_full) {
+            //     send_buffer = (char*)p_full->get();
+            // }
+            // MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
+            //             p.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
 
 //            const auto cols = p.columns_count();
 //            const auto rows = p.row_count(); // TODO: should not use rows! instead use local_ny!
@@ -194,7 +191,7 @@ int main(int argc, char **argv) {
 //                    p(rows - 1, j) = 0; // p[-1, :] = 0
 //                }
 //            }
-        //}
+        }
 //
 //        auto un = Matrix<float>(u);
 //        auto vn = Matrix<float>(v);
@@ -252,7 +249,7 @@ int main(int argc, char **argv) {
             break;
         }
 #endif
-    //}
+    }
     MPI_Finalize();
     std::cout << "Simulation completed" << std::endl;
     return 0;
