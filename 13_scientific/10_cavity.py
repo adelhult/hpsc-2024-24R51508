@@ -20,8 +20,8 @@ p = np.zeros((ny, nx))
 b = np.zeros((ny, nx))
 X, Y = np.meshgrid(x, y)
 
-# For easier debugging
-np.set_printoptions(threshold=np.inf)
+# Uncomment For easier debugging
+#np.set_printoptions(threshold=np.inf)
 
 def parse_file(file_content):
     """Parse the contents of a file into a numpy 2d array"""
@@ -86,10 +86,21 @@ for n in range(nt):
     # Debugging
     if (n == 5):
         error_margin = 1e-3 # rounding differences? (At least I hopes so :sweat: !)
-        assert ((read_file("./output/u.txt") - u) < error_margin).all()
-        assert ((read_file("./output/v.txt") -v) < error_margin).all()
-        assert ((read_file("./output/p.txt") -p) < error_margin).all()
-        assert ((read_file("./output/b.txt") - b) < error_margin).all()
+        #print("u:")
+        #print((read_file("./final_report/u.txt") - u) < error_margin)
+        assert ((read_file("./final_report/u.txt") - u) < error_margin).all()
+        
+        #print("v:")
+        #print((read_file("./final_report/v.txt") - v) < error_margin)
+        assert ((read_file("./final_report/v.txt") -v) < error_margin).all()
+        
+        #print("p:")
+        #print((read_file("./final_report/p.txt") - p) < error_margin)
+        assert ((read_file("./final_report/p.txt") -p) < error_margin).all()
+
+        #print("b:")
+        #print((read_file("./final_report/b.txt") - b) < error_margin)
+        assert ((read_file("./final_report/b.txt") - b) < error_margin).all()
         break
 
     # plt.contourf(X, Y, p, alpha=0.5, cmap=plt.cm.coolwarm)
