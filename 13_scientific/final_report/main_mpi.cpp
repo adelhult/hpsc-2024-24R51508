@@ -130,6 +130,55 @@ int main(int argc, char **argv) {
             }
         }
 
+        for (auto it = 0; it < nit; it++) {
+            auto pn = Matrix<float>(p);
+            for (auto j = first_row; j < last_row; j++) {
+                for (auto i = 1; i < nx - 1; i++) {
+                    // dependent on
+                    // previous values of p: pn(j, i + 1), pn(j, i - 1), pn(j + 1, i), pn(j - 1, i)
+                    // b(j, i)
+                    p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
+                               powf(dx, 2) * (pn(j + 1, i) + pn(j - 1, i)) -
+                               b(j, i) * powf(dx, 2) * powf(dy, 2))
+                              / (2 * (powf(dx, 2) + powf(dy, 2)));
+                }
+            }
+
+            // Gather the entire matrix at process 0 and then scatter the data again to update the ghost rows.
+            // IMPORTANT NOTE: This adds a *lot* of needless overhead since we really only need to sync the ghost
+            // rows in each iteration!
+            MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
+                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
+                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+            char *send_buffer = nullptr;
+            if (b_full) {
+                send_buffer = (char*)b_full->get();
+            }
+            MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
+                        b.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
+            if (b_full) {
+                send_buffer = (char*)p_full->get();
+            }
+            MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
+                        p.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+            // const auto cols = p.columns_count();
+            // const auto rows = p.row_count();
+
+            // for (auto i = 0; i < rows; i++) {
+            //     p(i, cols - 1) = p(i,cols - 2); // p[:, -1] = p[:, -2]
+            //     p(i, 0) = p(i, 1);              // p[:, 0] = p[:, 1]
+            // }
+
+
+            // for (auto j = 0; j < cols; j++) {
+            //     p(0, j) = p(1, j);              // p[0, :] = p[1, :]
+            //     p(rows - 1, j) = 0;                     // p[-1, :] = 0
+            // }
+        }
+
         // Debugging
 #ifdef DEBUGGING
         if (n == 5 && rank == 0) {
