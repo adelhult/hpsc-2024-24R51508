@@ -71,8 +71,10 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    const auto nx = 41;
-    const auto ny = 41;
+    //const auto nx = 41;
+    //const auto ny = 41;
+    const auto nx = 10;
+    const auto ny = 10;
 
     const auto nt = 500;
     const auto nit = 50;
@@ -153,14 +155,14 @@ int main(int argc, char **argv) {
             MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
                        MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-            const char *send_buffer = nullptr;
+            char *send_buffer = nullptr;
             if (b_full) {
-                send_buffer = b_full->get();
+                send_buffer = (char*)b_full->get();
             }
             MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
                         b.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
             if (b_full) {
-                send_buffer = p_full->get();
+                send_buffer = (char*)p_full->get();
             }
             MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
                         p.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -238,10 +240,10 @@ int main(int argc, char **argv) {
 #ifdef DEBUGGING
         if (n == 5) {
             std::cout << "Saved debug files" << std::endl;
-            u.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/u.txt");
-            v.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/v.txt");
-            p.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/p.txt");
-            b.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/b.txt");
+            u.save_on_disk("./u.txt");
+            v.save_on_disk("./v.txt");
+            p.save_on_disk("./p.txt");
+            b.save_on_disk("./b.txt");
             break;
         }
 #endif
