@@ -147,6 +147,9 @@ int main(int argc, char **argv) {
             // Gather the entire matrix at process 0 and then scatter the data again to update the ghost rows.
             // IMPORTANT NOTE: This adds a *lot* of needless overhead since we really only need to sync the ghost
             // rows in each iteration!
+
+            // SHIT! This doesn't work since I try to send overlapping data, and that is not supported by Scatter!!
+            // Back to OG plan of just sending the ghost rows then...
             MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
                        MPI_FLOAT, 0, MPI_COMM_WORLD);
             MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
