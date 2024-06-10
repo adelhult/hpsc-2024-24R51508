@@ -71,6 +71,12 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    auto u = Matrix<float>(local_ny + 2, nx, 0.0);
+    auto v = Matrix<float>(local_ny + 2, nx, 0.0);
+    auto p = Matrix<float>(local_ny + 2, nx, 0.0);
+    auto b = Matrix<float>(local_ny + 2, nx, 0.0);
+/*
+
     //const auto nx = 41;
     //const auto ny = 41;
     const auto nx = 10;
@@ -126,12 +132,14 @@ int main(int argc, char **argv) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
                 b(j, i) = rank;
-              /*  b(j, i) = rho * (1 / dt *
+              */
+/*  b(j, i) = rho * (1 / dt *
                                  ((u(j, i + 1) - u(j, i - 1)) / (2 * dx) + (v(j + 1, i) - v(j - 1, i)) / (2 * dy)) -
                                  powf((u(j, i + 1) - u(j, i - 1)) / (2 * dx), 2) -
                                  2 * ((u(j + 1, i) - u(j - 1, i)) / (2 * dy) *
                                       (v(j, i + 1) - v(j, i - 1)) / (2 * dx)) -
-                                 powf((v(j + 1, i) - v(j - 1, i)) / (2 * dy), 2));*/
+                                 powf((v(j + 1, i) - v(j - 1, i)) / (2 * dy), 2));*//*
+
             }
         }
 
@@ -140,10 +148,12 @@ int main(int argc, char **argv) {
             for (auto j = first_row; j < last_row; j++) {
                 for (auto i = 1; i < nx - 1; i++) {
                     p(j, i) = rank;
-               /*     p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
+               */
+/*     p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
                                powf(dx, 2) * (pn(j + 1, i) + pn(j - 1, i)) -
                                b(j, i) * powf(dx, 2) * powf(dy, 2))
-                              / (2 * (powf(dx, 2) + powf(dy, 2)));*/
+                              / (2 * (powf(dx, 2) + powf(dy, 2)));*//*
+
                 }
             }
 
@@ -166,6 +176,7 @@ int main(int argc, char **argv) {
             }
             MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
                         p.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
+*/
 
 //            const auto cols = p.columns_count();
 //            const auto rows = p.row_count(); // TODO: should not use rows! instead use local_ny!
