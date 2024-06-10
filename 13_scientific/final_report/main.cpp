@@ -3,13 +3,6 @@
 #include <vector>
 #include <fstream>
 
-template<class T>
-void print_vec(const std::vector<T> &vec) {
-    for (const auto &elem: vec) {
-        std::cout << elem << ", ";
-    }
-    std::cout << std::endl;
-}
 
 template<class T>
 class Matrix {
@@ -87,6 +80,9 @@ int main() {
     for (auto n = 0; n < nt; n++) {
         for (auto j = 1; j < ny - 1; j++) {
             for (auto i = 1; i < nx - 1; i++) {
+                // dependent on
+                // u(j, i+1), u(j, i-1), u(j + 1, i), u(j - 1, i)
+                // v(j + 1, i), v(j - 1, i), v(j, i + 1), v(j, i - 1)
                 b(j, i) = rho * (1 / dt *
                                   ((u(j, i + 1) - u(j, i - 1)) / (2 * dx) + (v(j + 1, i) - v(j - 1, i)) / (2 * dy)) -
                                   powf((u(j, i + 1) - u(j, i - 1)) / (2 * dx), 2) -
@@ -100,6 +96,9 @@ int main() {
             auto pn = Matrix<float>(p);
             for (auto j = 1; j < ny - 1; j++) {
                 for (auto i = 1; i < nx - 1; i++) {
+                    // dependent on
+                    // previous values of p: pn(j, i + 1), pn(j, i - 1), pn(j + 1, i), pn(j - 1, i)
+                    // b(j, i)
                     p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
                                powf(dx, 2) * (pn(j + 1, i) + pn(j - 1, i)) -
                                b(j, i) * powf(dx, 2) * powf(dy, 2))
@@ -110,24 +109,15 @@ int main() {
             const auto cols = p.columns_count();
             const auto rows = p.row_count();
 
-            // p[:, -1] = p[:, -2]
-            for (auto i = 0; i < rows; ++i) {
-                p(i, cols - 1) = p(i,cols - 2);
+            for (auto i = 0; i < rows; i++) {
+                p(i, cols - 1) = p(i,cols - 2); // p[:, -1] = p[:, -2]
+                p(i, 0) = p(i, 1);              // p[:, 0] = p[:, 1]
             }
 
-            // p[0, :] = p[1, :]
-            for (auto j = 0; j < cols; ++j) {
-                p(0, j) = p(1, j);
-            }
 
-            // p[:, 0] = p[:, 1]
-            for (auto i = 0; i < rows; ++i) {
-                p(i, 0) = p(i, 1);
-            }
-
-            // p[-1, :] = 0
-            for (auto j = 0; j < cols; ++j) {
-                p(rows - 1, j) = 0;
+            for (auto j = 0; j < cols; j++) {
+                p(0, j) = p(1, j);              // p[0, :] = p[1, :]
+                p(rows - 1, j) = 0;                     // p[-1, :] = 0
             }
         }
 
@@ -136,12 +126,15 @@ int main() {
 
         for (auto j = 1; j < ny-1; j++) {
             for (auto i = 1; i < nx-1; i++) {
+                // dependent on
+                // previous values: un(j, i), un(j-1, i), un(j+1, i),  un(j, i - 1), un(j, i+1)
+                // p(j, i+1), p(j, i-1),
                 u(j, i) = un(j, i) - un(j, i) * dt / dx * (un(j, i) - un(j, i - 1))
                                - un(j, i) * dt / dy * (un(j, i) - un(j - 1, i))
                                - dt / (2 * rho * dx) * (p(j, i+1) - p(j, i-1))
                                + nu * dt / powf(dx,2) * (un(j, i+1) - 2 * un(j, i) + un(j, i-1))
                                + nu * dt / powf(dy,2) * (un(j+1, i) - 2 * un(j, i) + un(j-1, i));
-
+                // same thing but for vn and p
                 v(j, i) = vn(j, i) - vn(j, i) * dt / dx * (vn(j, i) - vn(j, i - 1))
                                - vn(j, i) * dt / dy * (vn(j, i) - vn(j - 1, i))
                                - dt / (2 * rho * dy) * (p(j+1, i) - p(j-1, i))
@@ -153,14 +146,14 @@ int main() {
         const auto cols = u.columns_count();
         const auto rows = u.row_count();
 
-        for (auto j = 0; j < cols; ++j) {
+        for (auto j = 0; j < cols; j++) {
             u(0, j) = 0;      // u[0, :]  = 0
             u(rows-1, j) = 1; // u[-1, :] = 1
             v(0, j) = 0;      // v[0, :]  = 0
             v(rows-1, j) = 0; // v[-1, :] = 0
         }
         
-        for (auto i = 0; i < rows; ++i) {
+        for (auto i = 0; i < rows; i++) {
             u(i, 0) = 0;      // u[:, 0]  = 0
             u(i, cols-1) = 0; // u[:, -1] = 0
             v(i, 0) = 0;      // v[:, 0]  = 0
@@ -168,14 +161,16 @@ int main() {
         }
 
         // Debugging
+#ifdef DEBUGGING
         if (n == 5) {
+            std::cout << "Saved debug files" << std::endl;
             u.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/u.txt");
             v.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/v.txt");
             p.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/p.txt");
             b.save_on_disk("/home/eli/tokyo-tech/hpsc-2024-24R51508/13_scientific/output/b.txt");
             break;
         }
-
+#endif
     }
-
+    std::cout << "Simulation completed" << std::endl;
 }
