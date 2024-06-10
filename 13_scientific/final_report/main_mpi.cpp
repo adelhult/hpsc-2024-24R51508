@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 //                    p(rows - 1, j) = 0; // p[-1, :] = 0
 //                }
 //            }
-        }
+        //}
 //
 //        auto un = Matrix<float>(u);
 //        auto vn = Matrix<float>(v);
@@ -258,7 +258,7 @@ int main(int argc, char **argv) {
             break;
         }
 #endif
-    }
+    //}
     MPI_Finalize();
     std::cout << "Simulation completed" << std::endl;
     return 0;
