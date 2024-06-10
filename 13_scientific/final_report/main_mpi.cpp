@@ -135,11 +135,11 @@ int main(int argc, char **argv) {
             }
         }
 
-        for (auto it = 0; it < nit; it++) {
-            auto pn = Matrix<float>(p);
-            for (auto j = first_row; j < last_row; j++) {
-                for (auto i = 1; i < nx - 1; i++) {
-                    p(j, i) = rank;
+        // for (auto it = 0; it < nit; it++) {
+        //     auto pn = Matrix<float>(p);
+        //     for (auto j = first_row; j < last_row; j++) {
+        //         for (auto i = 1; i < nx - 1; i++) {
+        //             p(j, i) = rank;
                
 /*     p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
                                powf(dx, 2) * (pn(j + 1, i) + pn(j - 1, i)) -
@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
 //                    p(rows - 1, j) = 0; // p[-1, :] = 0
 //                }
 //            }
-        }
+        //}
 //
 //        auto un = Matrix<float>(u);
 //        auto vn = Matrix<float>(v);
