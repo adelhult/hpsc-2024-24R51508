@@ -132,12 +132,12 @@ int main(int argc, char **argv) {
 
         // Debugging
 #ifdef DEBUGGING
-        if (n == 5) {
+        if (n == 5 && rank == 0) {
             std::cout << "Saved debug files" << std::endl;
-            u.save_on_disk("./u.txt");
-            v.save_on_disk("./v.txt");
-            p.save_on_disk("./p.txt");
-            b.save_on_disk("./b.txt");
+            u_full->>save_on_disk("./u.txt");
+            v_full->save_on_disk("./v.txt");
+            p_full->save_on_disk("./p.txt");
+            b_full->save_on_disk("./b.txt");
             break;
         }
 #endif
