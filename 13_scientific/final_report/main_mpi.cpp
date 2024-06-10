@@ -187,8 +187,8 @@ int main(int argc, char **argv) {
             v_full->save_on_disk("./v.txt");
             p_full->save_on_disk("./p.txt");
             b_full->save_on_disk("./b.txt");
-            break;
         }
+        break;
 #endif
     }
     MPI_Finalize();
