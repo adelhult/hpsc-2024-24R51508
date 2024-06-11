@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    
+
     //const auto nx = 41;
     //const auto ny = 41;
     const auto nx = 10;
@@ -144,28 +144,25 @@ int main(int argc, char **argv) {
                 }
             }
 
-            // Gather the entire matrix at process 0 and then scatter the data again to update the ghost rows.
-            // IMPORTANT NOTE: This adds a *lot* of needless overhead since we really only need to sync the ghost
-            // rows in each iteration!
+            // Send my rows to neighbors
+            // Note: here I let the grid loop around and send messages between the last and first process
+            // but they just ignore those ghost rows when calculating the actual values later!
+            auto prev = (rank - 1 + size) % size;
+            auto next = (rank + 1) % size;
 
-            // SHIT! This doesn't work since I try to send overlapping data, and that is not supported by Scatter!!
-            // Back to OG plan of just sending the ghost rows then...
-            MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            // exchange first row with the one before you
+            MPI_Sendrecv(b.get() + nx, nx, MPI_FLOAT,
+                         prev, 0,
+                         b.get(), nx, MPI_FLOAT,
+                         rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-            char *send_buffer = nullptr;
-            if (b_full) {
-                send_buffer = (char*)b_full->get();
-            }
-            MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
-                        b.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
-            if (b_full) {
-                send_buffer = (char*)p_full->get();
-            }
-            MPI_Scatter(send_buffer, nx * (local_ny + 2), MPI_FLOAT,
-                        p.get(), nx * (local_ny + 2), MPI_FLOAT, 0, MPI_COMM_WORLD);
+            // exchange last row with the one after you
+            MPI_Sendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
+                         next, 0,
+                         b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
+                         rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+            // TODO: same for p!!!
 
             // const auto cols = p.columns_count();
             // const auto rows = p.row_count();
