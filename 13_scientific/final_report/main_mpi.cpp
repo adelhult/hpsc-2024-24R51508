@@ -150,20 +150,23 @@ int main(int argc, char **argv) {
             auto prev = (rank - 1 + size) % size;
             auto next = (rank + 1) % size;
 
+            MPI_Request requests[2];
             // exchange first row with the one before you
             std::cout << "sending from " << rank << "to " << prev << std::endl;
-            MPI_Sendrecv(b.get() + nx, nx, MPI_FLOAT,
+            MPI_Isendrecv(b.get() + nx, nx, MPI_FLOAT,
                          prev, 0,
                          b.get(), nx, MPI_FLOAT,
-                         prev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                         prev, 0, MPI_COMM_WORLD, &requests[0]);
 
 
             // exchange last row with the one after you
             std::cout << "sending from " << rank << "to " << next << std::endl;
-            MPI_Sendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
+            MPI_Isendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
                          next, 0,
                          b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                         next, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                         next, 0, MPI_COMM_WORLD, &request[1]);
+
+            MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
 
             // TODO: same for p!!!
 
