@@ -122,6 +122,12 @@ int main(int argc, char **argv) {
         b_full.emplace(ny, nx, 0.0);
     }
 
+    // Used to send my rows to neighbors
+    // Note: here I let the grid loop around and send messages between the last and first process
+    // but they just ignore those ghost rows when calculating the actual values later!
+    auto prev = (rank - 1 + size) % size;
+    auto next = (rank + 1) % size;
+
     // Let's actually run the algorithm!
     for (auto n = 0; n < nt; n++) {
         for (auto j = first_row; j < last_row; j++) {
@@ -134,12 +140,6 @@ int main(int argc, char **argv) {
                                  powf((v(j + 1, i) - v(j - 1, i)) / (2 * dy), 2));
             }
         }
-
-        // Send my rows to neighbors
-        // Note: here I let the grid loop around and send messages between the last and first process
-        // but they just ignore those ghost rows when calculating the actual values later!
-        auto prev = (rank - 1 + size) % size;
-        auto next = (rank + 1) % size;
 
         MPI_Request requests_b[2];
         // exchange first row with the one before you
@@ -160,9 +160,6 @@ int main(int argc, char **argv) {
             auto pn = Matrix<float>(p);
             for (auto j = first_row; j < last_row; j++) {
                 for (auto i = 1; i < nx - 1; i++) {
-                    // dependent on
-                    // previous values of p: pn(j, i + 1), pn(j, i - 1), pn(j + 1, i), pn(j - 1, i)
-                    // b(j, i)
                     p(j, i) = (powf(dy, 2) * (pn(j, i + 1) + pn(j, i - 1)) +
                                powf(dx, 2) * (pn(j + 1, i) + pn(j - 1, i)) -
                                b(j, i) * powf(dx, 2) * powf(dy, 2))
@@ -178,7 +175,6 @@ int main(int argc, char **argv) {
                           p.get(), nx, MPI_FLOAT,
                           prev, 0, MPI_COMM_WORLD, &requests_p[0]);
 
-            std::cout << "sending from " << rank << "to " << next << std::endl;
             MPI_Isendrecv(p.get() + local_ny * nx, nx, MPI_FLOAT,
                           next, 0,
                           p.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
@@ -198,7 +194,7 @@ int main(int argc, char **argv) {
             if (rank == 0) {
                 for (auto j = 0; j < cols; j++) {
                     p(1, j) = p(2, j);  // p[0, :] = p[1, :]
-                    // Note: it's 1 and not 2 since the first row is just a ghost row
+                    // Note: it's 1 and 2 and not 0 since the first row is just a ghost row
                 }
             }
 
@@ -209,6 +205,84 @@ int main(int argc, char **argv) {
                 }
             }
         }
+
+        auto un = Matrix<float>(u);
+        auto vn = Matrix<float>(v);
+
+        for (auto j = first_row; j < last_row; j++) {
+            for (auto i = 1; i < nx - 1; i++) {
+                // dependent on
+                // previous values: un(j, i), un(j-1, i), un(j+1, i),  un(j, i - 1), un(j, i+1)
+                // p(j, i+1), p(j, i-1),
+                u(j, i) = un(j, i) - un(j, i) * dt / dx * (un(j, i) - un(j, i - 1))
+                          - un(j, i) * dt / dy * (un(j, i) - un(j - 1, i))
+                          - dt / (2 * rho * dx) * (p(j, i + 1) - p(j, i - 1))
+                          + nu * dt / powf(dx, 2) * (un(j, i + 1) - 2 * un(j, i) + un(j, i - 1))
+                          + nu * dt / powf(dy, 2) * (un(j + 1, i) - 2 * un(j, i) + un(j - 1, i));
+
+                v(j, i) = vn(j, i) - vn(j, i) * dt / dx * (vn(j, i) - vn(j, i - 1))
+                          - vn(j, i) * dt / dy * (vn(j, i) - vn(j - 1, i))
+                          - dt / (2 * rho * dy) * (p(j + 1, i) - p(j - 1, i))
+                          + nu * dt / powf(dx, 2) * (vn(j, i + 1) - 2 * vn(j, i) + vn(j, i - 1))
+                          + nu * dt / powf(dy, 2) * (vn(j + 1, i) - 2 * vn(j, i) + vn(j - 1, i));
+            }
+        }
+
+        const auto cols = u.columns_count();
+        const auto rows = u.row_count();
+
+        // The first row
+        if (rank == 0) {
+            for (auto j = 0; j < cols; j++) {
+                u(1, j) = 0; // u[0, :]  = 0
+                v(1, j) = 0; // v[0, :]  = 0
+                // Note: it's 1 and not 0 due to the ghost row
+            }
+        }
+
+        // The last row
+        if (rank == size - 1) {
+            for (auto j = 0; j < cols; j++) {
+                u(rows - 2, j) = 1; // u[-1, :] = 1
+                v(rows - 2, j) = 0; // v[-1, :] = 0
+                // Note: It's -2 and not -1 due to the ghost row
+            }
+        }
+
+        for (auto i = 0; i < rows; i++) {
+            u(i, 0) = 0;
+            u(i, cols - 1) = 0;
+            v(i, 0) = 0;
+            v(i, cols - 1) = 0;
+        }
+
+        // Send ghost rows to neigbors
+        MPI_Request requests_u_v[4];
+
+        // Updating the ghost rows in p between each iteration!
+        MPI_Isendrecv(u.get() + nx, nx, MPI_FLOAT,
+                      prev, 0,
+                      u.get(), nx, MPI_FLOAT,
+                      prev, 0, MPI_COMM_WORLD, &requests_u_v[0]);
+
+        MPI_Isendrecv(u.get() + local_ny * nx, nx, MPI_FLOAT,
+                      next, 0,
+                      u.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
+                      next, 0, MPI_COMM_WORLD, &requests_u_v[1]);
+
+        // Updating the ghost rows in p between each iteration!
+        MPI_Isendrecv(v.get() + nx, nx, MPI_FLOAT,
+                      prev, 0,
+                      v.get(), nx, MPI_FLOAT,
+                      prev, 0, MPI_COMM_WORLD, &requests_u_v[2]);
+
+        MPI_Isendrecv(v.get() + local_ny * nx, nx, MPI_FLOAT,
+                      next, 0,
+                      v.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
+                      next, 0, MPI_COMM_WORLD, &requests_u_v[3]);
+
+        MPI_Waitall(2, requests_u_v, MPI_STATUS_IGNORE);
+
 
         // Debugging
 #ifdef DEBUGGING
