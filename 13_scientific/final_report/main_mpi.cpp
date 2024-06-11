@@ -151,6 +151,7 @@ int main(int argc, char **argv) {
             auto next = (rank + 1) % size;
 
             // exchange first row with the one before you
+            std::cout << "sending from " << rank << "to " << prev << std::endl;
             MPI_Sendrecv(b.get() + nx, nx, MPI_FLOAT,
                          prev, 0,
                          b.get(), nx, MPI_FLOAT,
@@ -158,10 +159,11 @@ int main(int argc, char **argv) {
 
 
             // exchange last row with the one after you
+            std::cout << "sending from " << rank << "to " << next << std::endl;
             MPI_Sendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
                          next, 0,
                          b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                         prev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                         next, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             // TODO: same for p!!!
 
