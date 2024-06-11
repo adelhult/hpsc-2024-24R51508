@@ -184,6 +184,14 @@ int main(int argc, char **argv) {
         // Debugging
 #ifdef DEBUGGING
         if (n == 5) {
+            MPI_Gather(u.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
+                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gather(v.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
+                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
+                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
+                       MPI_FLOAT, 0, MPI_COMM_WORLD);
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
                 u_full->save_on_disk("./u.txt");
