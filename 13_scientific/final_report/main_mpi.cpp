@@ -193,10 +193,10 @@ int main(int argc, char **argv) {
                        MPI_FLOAT, 0, MPI_COMM_WORLD);
             MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
                        MPI_FLOAT, 0, MPI_COMM_WORLD);
-            std::cout << rank << ":" << std::endl;
-            b.print();
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
+                std::cout << rank << ":" << std::endl;
+                b.print();
                 u_full->save_on_disk("./u.txt");
                 v_full->save_on_disk("./v.txt");
                 p_full->save_on_disk("./p.txt");
