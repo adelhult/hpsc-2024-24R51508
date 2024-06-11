@@ -122,13 +122,43 @@ int main(int argc, char **argv) {
         b_full.emplace(ny, nx, 0.0);
     }
 
+    // Let's actually run the algorithm!
     for (auto n = 0; n < nt; n++) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
-                //std::cout << j << ", " << i << std::endl; 
-                //b(j, i) = b(j, i) + 1;
+                                b(j, i) = rho * (1 / dt *
+                                  ((u(j, i + 1) - u(j, i - 1)) / (2 * dx) + (v(j + 1, i) - v(j - 1, i)) / (2 * dy)) -
+                                  powf((u(j, i + 1) - u(j, i - 1)) / (2 * dx), 2) -
+                                  2 * ((u(j + 1, i) - u(j - 1, i)) / (2 * dy) *
+                                       (v(j, i + 1) - v(j, i - 1)) / (2 * dx)) -
+                                  powf((v(j + 1, i) - v(j - 1, i)) / (2 * dy), 2));
             }
         }
+
+        // Send my rows to neighbors
+        // Note: here I let the grid loop around and send messages between the last and first process
+        // but they just ignore those ghost rows when calculating the actual values later!
+        auto prev = (rank - 1 + size) % size;
+        auto next = (rank + 1) % size;
+
+        MPI_Request requests[2];
+        // exchange first row with the one before you
+        std::cout << "sending from " << rank << "to " << prev << std::endl;
+        MPI_Isendrecv(b.get() + nx, nx, MPI_FLOAT,
+                         prev, 0,
+                         b.get(), nx, MPI_FLOAT,
+                         prev, 0, MPI_COMM_WORLD, &requests[0]);
+
+
+        // exchange last row with the one after you
+        std::cout << "sending from " << rank << "to " << next << std::endl;
+        MPI_Isendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
+                         next, 0,
+                         b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
+                         next, 0, MPI_COMM_WORLD, &requests[1]);
+            
+        MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
+
 
         for (auto it = 0; it < nit; it++) {
             auto pn = Matrix<float>(p);
@@ -144,45 +174,44 @@ int main(int argc, char **argv) {
                 }
             }
 
-            // Send my rows to neighbors
-            // Note: here I let the grid loop around and send messages between the last and first process
-            // but they just ignore those ghost rows when calculating the actual values later!
-            auto prev = (rank - 1 + size) % size;
-            auto next = (rank + 1) % size;
+            MPI_Request requests_p[2];
 
-            MPI_Request requests[2];
-            // exchange first row with the one before you
-            std::cout << "sending from " << rank << "to " << prev << std::endl;
-            MPI_Isendrecv(b.get() + nx, nx, MPI_FLOAT,
+            // Updating the ghost rows in p between each iteration!
+            MPI_Isendrecv(p.get() + nx, nx, MPI_FLOAT,
                          prev, 0,
-                         b.get(), nx, MPI_FLOAT,
-                         prev, 0, MPI_COMM_WORLD, &requests[0]);
+                         p.get(), nx, MPI_FLOAT,
+                         prev, 0, MPI_COMM_WORLD, &requests_p[2]);
 
-
-            // exchange last row with the one after you
             std::cout << "sending from " << rank << "to " << next << std::endl;
-            MPI_Isendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
+            MPI_Isendrecv(p.get() + local_ny * nx, nx, MPI_FLOAT,
                          next, 0,
-                         b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                         next, 0, MPI_COMM_WORLD, &requests[1]);
+                         p.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
+                         next, 0, MPI_COMM_WORLD, &requests_p[3]);
 
-            MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
+            MPI_Waitall(2, requests_p, MPI_STATUS_IGNORE);
 
-            // TODO: same for p!!!
+            // Boundary conditions for p
+            const auto rows = p.row_count();
+            const auto cols = p.columns_count();
 
-            // const auto cols = p.columns_count();
-            // const auto rows = p.row_count();
+            for (auto i = 0; i < rows; i++) {
+               p(i, cols - 1) = p(i, cols - 2); // p[:, -1] = p[:, -2]
+               p(i, 0) = p(i, 1);               // p[:, 0] = p[:, 1]
+            }
 
-            // for (auto i = 0; i < rows; i++) {
-            //     p(i, cols - 1) = p(i,cols - 2); // p[:, -1] = p[:, -2]
-            //     p(i, 0) = p(i, 1);              // p[:, 0] = p[:, 1]
-            // }
+            if (rank == 0) {
+               for (auto j = 0; j < cols; j++) {
+                   p(1, j) = p(2, j);  // p[0, :] = p[1, :]
+                   // Note: it's 1 and not 2 since the first row is just a ghost row
+               }
+            }
 
-
-            // for (auto j = 0; j < cols; j++) {
-            //     p(0, j) = p(1, j);              // p[0, :] = p[1, :]
-            //     p(rows - 1, j) = 0;                     // p[-1, :] = 0
-            // }
+           if (rank == size - 1) {
+               for (auto j = 0; j < cols; j++) {
+                   p(rows - 2, j) = 0; // p[-1, :] = 0
+                   // Same here: it's -2 since the last row is just a ghost row
+               }
+           }
         }
 
         // Debugging
