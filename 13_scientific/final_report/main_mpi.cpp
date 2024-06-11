@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
             auto next = (rank + 1) % size;
 
             // exchange first row with the one before you
-            std::cout < "sending from me " << rank << "to " << prev;
+            std::cout << "sending from me " << rank << "to " << prev;
             MPI_Sendrecv(b.get() + nx, nx, MPI_FLOAT,
                          prev, 0,
                          b.get(), nx, MPI_FLOAT,
