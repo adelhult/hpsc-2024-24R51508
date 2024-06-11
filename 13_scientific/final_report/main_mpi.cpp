@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
                 //std::cout << j << ", " << i << std::endl; 
-                b(j, i) = 10;
+                b(j, i) = rank;
             }
         }
 
