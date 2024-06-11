@@ -96,10 +96,10 @@ int main(int argc, char **argv) {
     std::cout << "local_ny: " << local_ny << std::endl;
     // We add an extra "ghost row" at the top and bottom (not really needed for the first and last row,
     // but let's keep it simple).
-    auto u = Matrix<float>(local_ny + 2, nx, 0.0);
-    auto v = Matrix<float>(local_ny + 2, nx, 0.0);
-    auto p = Matrix<float>(local_ny + 2, nx, 0.0);
-    auto b = Matrix<float>(local_ny + 2, nx, 0.0);
+    auto u = Matrix<float>(local_ny + 2, nx, rank * 10.0);
+    auto v = Matrix<float>(local_ny + 2, nx, rank * 10.0);
+    auto p = Matrix<float>(local_ny + 2, nx, rank * 10.0);
+    auto b = Matrix<float>(local_ny + 2, nx, rank * 10.0);
     int first_row = 1;
     // The first process has no use for the ghost row at the top
     if (rank == 0) {
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
                 //std::cout << j << ", " << i << std::endl; 
-                b(j, i) = rank + 1;
+                b(j, i) = b(j, i) + 1;
             }
         }
 
