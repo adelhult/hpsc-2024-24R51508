@@ -180,13 +180,13 @@ int main(int argc, char **argv) {
             MPI_Isendrecv(p.get() + nx, nx, MPI_FLOAT,
                          prev, 0,
                          p.get(), nx, MPI_FLOAT,
-                         prev, 0, MPI_COMM_WORLD, &requests_p[2]);
+                         prev, 0, MPI_COMM_WORLD, &requests_p[0]);
 
             std::cout << "sending from " << rank << "to " << next << std::endl;
             MPI_Isendrecv(p.get() + local_ny * nx, nx, MPI_FLOAT,
                          next, 0,
                          p.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                         next, 0, MPI_COMM_WORLD, &requests_p[3]);
+                         next, 0, MPI_COMM_WORLD, &requests_p[1]);
 
             MPI_Waitall(2, requests_p, MPI_STATUS_IGNORE);
 
