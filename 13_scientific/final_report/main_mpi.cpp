@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
             MPI_Isendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
                          next, 0,
                          b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                         next, 0, MPI_COMM_WORLD, &request[1]);
+                         next, 0, MPI_COMM_WORLD, &requests[1]);
 
             MPI_Waitall(2, requests, MPI_STATUS_IGNORE);
 
