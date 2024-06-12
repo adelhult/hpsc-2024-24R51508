@@ -100,17 +100,6 @@ int main(int argc, char **argv) {
     auto v = Matrix<float>(local_ny + 2, nx, 0.0);
     auto p = Matrix<float>(local_ny + 2, nx, 0.0);
     auto b = Matrix<float>(local_ny + 2, nx, 0.0);
-    int first_row = 1;
-    // The first process has no use for the ghost row at the top
-    if (rank == 0) {
-        first_row++;
-    }
-
-    int last_row = local_ny + 1;
-    // The last process has no use for the ghost row at the bottom
-    if (rank == size - 1) {
-        last_row--;
-    }
 
     // Also, to make it easier to debug and save the final matrix we
     // store the matrix in its entirety at the first process.
@@ -127,6 +116,18 @@ int main(int argc, char **argv) {
     // but they just ignore those ghost rows when calculating the actual values later!
     auto prev = (rank - 1 + size) % size;
     auto next = (rank + 1) % size;
+
+    int first_row = 1;
+    // The first process has no use for the ghost row at the top
+    if (rank == 0) {
+        first_row++;
+    }
+
+    int last_row = local_ny + 1;
+    // The last process has no use for the ghost row at the bottom
+    if (rank == size - 1) {
+        last_row--;
+    }
 
     // Let's actually run the algorithm!
     for (auto n = 0; n < nt; n++) {
