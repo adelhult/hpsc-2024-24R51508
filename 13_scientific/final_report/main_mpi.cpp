@@ -296,18 +296,22 @@ int main(int argc, char **argv) {
         // Debugging
 #ifdef DEBUGGING
         if (n == 5) {
+            int receive_counts[size];
+            for (auto i = 0; i < size; i++) {
+                receive_counts[i] = nx * all_local_ny[i];
+            }
             int displacements[size];
             if (rank == 0) {
                 displacements[0] = 0;
-                for (int i = 1; i < size; i++) {
-                    displacements[i] = displacements[i - 1] + all_local_ny[i - 1] * nx;
+                for (auto i = 1; i < size; i++) {
+                    displacements[i] = displacements[i - 1] + receive_counts;
                 }
             }
 
-            MPI_Gatherv(u.get() + nx, local_ny * nx, MPI_FLOAT, u_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gatherv(v.get() + nx, local_ny * nx, MPI_FLOAT, v_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gatherv(b.get() + nx, local_ny * nx, MPI_FLOAT, b_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gatherv(p.get() + nx, local_ny * nx, MPI_FLOAT, p_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(u.get() + nx, local_ny * nx, MPI_FLOAT, u_full->get(), receive_counts, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(v.get() + nx, local_ny * nx, MPI_FLOAT, v_full->get(), receive_counts, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(b.get() + nx, local_ny * nx, MPI_FLOAT, b_full->get(), receive_counts, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(p.get() + nx, local_ny * nx, MPI_FLOAT, p_full->get(), receive_counts, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
