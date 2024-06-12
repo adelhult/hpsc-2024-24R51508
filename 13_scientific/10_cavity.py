@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-nx = 10
-ny = 10
+nx = 41
+ny = 41
 nt = 500
 nit = 50
 dx = 2 / (nx - 1)
@@ -88,19 +88,19 @@ for n in range(nt):
         error_margin = 1e-3 # rounding differences? (At least I hopes so :sweat: !)
         print("u:")
         print((read_file("./final_report/u.txt") - u) < error_margin)
-        #assert ((read_file("./final_report/u.txt") - u) < error_margin).all()
+        assert ((read_file("./final_report/u.txt") - u) < error_margin).all()
         
         print("v:")
         print((read_file("./final_report/v.txt") - v) < error_margin)
-        #assert ((read_file("./final_report/v.txt") -v) < error_margin).all()
+        assert ((read_file("./final_report/v.txt") -v) < error_margin).all()
         
         print("p:")
         print((read_file("./final_report/p.txt") - p) < error_margin)
-        #assert ((read_file("./final_report/p.txt") -p) < error_margin).all()
+        assert ((read_file("./final_report/p.txt") -p) < error_margin).all()
 
         print("b:")
         print((read_file("./final_report/b.txt") - b) < error_margin)
-        #assert ((read_file("./final_report/b.txt") - b) < error_margin).all()
+        assert ((read_file("./final_report/b.txt") - b) < error_margin).all()
         break
 
     # plt.contourf(X, Y, p, alpha=0.5, cmap=plt.cm.coolwarm)

@@ -71,10 +71,8 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    //const auto nx = 41;
-    //const auto ny = 41;
-    const auto nx = 10;
-    const auto ny = 10;
+    const auto nx = 41;
+    const auto ny = 41;
 
     const auto nt = 500;
     const auto nit = 50;
@@ -87,10 +85,10 @@ int main(int argc, char **argv) {
     const float nu = 0.02f;
 
     // Determine number of rows needed locally
-    int remainder = ny % size;
+    const int remainder = ny % size;
     int all_local_ny[size];
     for (auto i = 0; i < size; i++) {
-        all_local_ny[i] = ny/size;
+        all_local_ny[i] = ny / size;
         if (i < remainder) {
             all_local_ny[i]++;
         }
@@ -98,7 +96,7 @@ int main(int argc, char **argv) {
     const auto local_ny = all_local_ny[rank]; 
 
 
-    std::cout << "local_ny: " << local_ny << std::endl;
+    std::cout << "rank " << rank << "will process " << local_ny << " rows" << std::endl;
     // We add an extra "ghost row" at the top and bottom (not really needed for the first and last row,
     // but let's keep it simple).
     auto u = Matrix<float>(local_ny + 2, nx, 0.0);
@@ -108,6 +106,7 @@ int main(int argc, char **argv) {
 
     // Also, to make it easier to debug and save the final matrix we
     // store the matrix in its entirety at the first process.
+    // only used when debugging right now (see the end of the file).
     std::optional<Matrix<float>> u_full, v_full, p_full, b_full;
     if (rank == 0) {
         u_full.emplace(ny, nx, 0.0);
@@ -119,8 +118,8 @@ int main(int argc, char **argv) {
     // Used to send my rows to neighbors
     // Note: here I let the grid loop around and send messages between the last and first process
     // (but they just ignore those ghost rows when calculating the actual values later!)
-    auto prev = (rank - 1 + size) % size;
-    auto next = (rank + 1) % size;
+    const auto prev = (rank - 1 + size) % size;
+    const auto next = (rank + 1) % size;
     const int FIRST_ROW_TAG = 1;
     const int LAST_ROW_TAG = 2;
 
@@ -151,13 +150,13 @@ int main(int argc, char **argv) {
 
         MPI_Request requests_b[2];
 
-        // exchange first row with the one before you
+        // Exchange first row with the one before you
         MPI_Isendrecv(b.get() + nx, nx, MPI_FLOAT,
                       prev, FIRST_ROW_TAG,
                       b.get(), nx, MPI_FLOAT,
                       prev, LAST_ROW_TAG, MPI_COMM_WORLD, &requests_b[0]);
 
-        // exchange last row with the one after you
+        // Exchange last row with the one after you
         MPI_Isendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
                       next, LAST_ROW_TAG,
                       b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
@@ -220,9 +219,6 @@ int main(int argc, char **argv) {
 
         for (auto j = first_row; j < last_row; j++) {
             for (auto i = 1; i < nx - 1; i++) {
-                // dependent on
-                // previous values: un(j, i), un(j-1, i), un(j+1, i),  un(j, i - 1), un(j, i+1)
-                // p(j, i+1), p(j, i-1),
                 u(j, i) = un(j, i) - un(j, i) * dt / dx * (un(j, i) - un(j, i - 1))
                           - un(j, i) * dt / dy * (un(j, i) - un(j - 1, i))
                           - dt / (2 * rho * dx) * (p(j, i + 1) - p(j, i - 1))
@@ -265,10 +261,9 @@ int main(int argc, char **argv) {
             }
         }
 
-        // Send ghost rows to neigbors
+        // Send ghost rows to neighbors
         MPI_Request requests_u_v[4];
 
-        // Updating the ghost rows in p between each iteration!
         MPI_Isendrecv(u.get() + nx, nx, MPI_FLOAT,
                       prev, FIRST_ROW_TAG,
                       u.get(), nx, MPI_FLOAT,
@@ -279,7 +274,6 @@ int main(int argc, char **argv) {
                       u.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
                       next, FIRST_ROW_TAG, MPI_COMM_WORLD, &requests_u_v[1]);
 
-        // Updating the ghost rows in p between each iteration!
         MPI_Isendrecv(v.get() + nx, nx, MPI_FLOAT,
                       prev, FIRST_ROW_TAG,
                       v.get(), nx, MPI_FLOAT,
@@ -292,8 +286,7 @@ int main(int argc, char **argv) {
 
         MPI_Waitall(4, requests_u_v, MPI_STATUS_IGNORE);
 
-
-        // Debugging
+        // Debugging (saving the matrix as a .txt file, see the modified 10_cavity.py file for testing)
 #ifdef DEBUGGING
         if (n == 5) {
             int receive_counts[size];
