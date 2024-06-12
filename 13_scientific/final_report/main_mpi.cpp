@@ -288,6 +288,8 @@ int main(int argc, char **argv) {
         // Debugging
 #ifdef DEBUGGING
         if (n == 1) {
+            // TODO: this breaks if local_ny is different between processes
+            // i.e. when ny is not divisible by size. 
             MPI_Gather(u.get() + nx, nx * local_ny, MPI_FLOAT, u_full->get() + nx * local_ny * rank, nx * local_ny,
                        MPI_FLOAT, 0, MPI_COMM_WORLD);
             MPI_Gather(v.get() + nx, nx * local_ny, MPI_FLOAT, v_full->get() + nx * local_ny * rank, nx * local_ny,
