@@ -116,6 +116,8 @@ int main(int argc, char **argv) {
     // but they just ignore those ghost rows when calculating the actual values later!
     auto prev = (rank - 1 + size) % size;
     auto next = (rank + 1) % size;
+    const int FIRST_ROW_TAG = 1;
+    const int LAST_ROW_TAG = 2;
 
     int first_row = 1;
     // The first process has no use for the ghost row at the top
@@ -143,18 +145,18 @@ int main(int argc, char **argv) {
         }
 
         MPI_Request requests_b[2];
-        // TODO: This will break if you have just two processes!!!!
+
         // exchange first row with the one before you
         MPI_Isendrecv(b.get() + nx, nx, MPI_FLOAT,
-                      prev, 0,
+                      prev, FIRST_ROW_TAG,
                       b.get(), nx, MPI_FLOAT,
-                      prev, 0, MPI_COMM_WORLD, &requests_b[0]);
+                      prev, LAST_ROW_TAG, MPI_COMM_WORLD, &requests_b[0]);
 
         // exchange last row with the one after you
         MPI_Isendrecv(b.get() + local_ny * nx, nx, MPI_FLOAT,
-                      next, 0,
+                      next, LAST_ROW_TAG,
                       b.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                      next, 0, MPI_COMM_WORLD, &requests_b[1]);
+                      next, FIRST_ROW_TAG, MPI_COMM_WORLD, &requests_b[1]);
 
         MPI_Waitall(2, requests_b, MPI_STATUS_IGNORE);
 
@@ -173,14 +175,14 @@ int main(int argc, char **argv) {
 
             // Updating the ghost rows in p between each iteration!
             MPI_Isendrecv(p.get() + nx, nx, MPI_FLOAT,
-                          prev, 0,
+                          prev, FIRST_ROW_TAG,
                           p.get(), nx, MPI_FLOAT,
-                          prev, 0, MPI_COMM_WORLD, &requests_p[0]);
+                          prev, LAST_ROW_TAG, MPI_COMM_WORLD, &requests_p[0]);
 
             MPI_Isendrecv(p.get() + local_ny * nx, nx, MPI_FLOAT,
-                          next, 0,
+                          next, LAST_ROW_TAG,
                           p.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                          next, 0, MPI_COMM_WORLD, &requests_p[1]);
+                          next, FIRST_ROW_TAG, MPI_COMM_WORLD, &requests_p[1]);
 
             MPI_Waitall(2, requests_p, MPI_STATUS_IGNORE);
 
@@ -263,32 +265,32 @@ int main(int argc, char **argv) {
 
         // Updating the ghost rows in p between each iteration!
         MPI_Isendrecv(u.get() + nx, nx, MPI_FLOAT,
-                      prev, 0,
+                      prev, FIRST_ROW_TAG,
                       u.get(), nx, MPI_FLOAT,
-                      prev, 0, MPI_COMM_WORLD, &requests_u_v[0]);
+                      prev, LAST_ROW_TAG, MPI_COMM_WORLD, &requests_u_v[0]);
 
         MPI_Isendrecv(u.get() + local_ny * nx, nx, MPI_FLOAT,
-                      next, 0,
+                      next, LAST_ROW_TAG,
                       u.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                      next, 0, MPI_COMM_WORLD, &requests_u_v[1]);
+                      next, FIRST_ROW_TAG, MPI_COMM_WORLD, &requests_u_v[1]);
 
         // Updating the ghost rows in p between each iteration!
         MPI_Isendrecv(v.get() + nx, nx, MPI_FLOAT,
-                      prev, 0,
+                      prev, FIRST_ROW_TAG,
                       v.get(), nx, MPI_FLOAT,
-                      prev, 0, MPI_COMM_WORLD, &requests_u_v[2]);
+                      prev, LAST_ROW_TAG, MPI_COMM_WORLD, &requests_u_v[2]);
 
         MPI_Isendrecv(v.get() + local_ny * nx, nx, MPI_FLOAT,
-                      next, 0,
+                      next, LAST_ROW_TAG,
                       v.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
-                      next, 0, MPI_COMM_WORLD, &requests_u_v[3]);
+                      next, FIRST_ROW_TAG, MPI_COMM_WORLD, &requests_u_v[3]);
 
         MPI_Waitall(4, requests_u_v, MPI_STATUS_IGNORE);
 
 
         // Debugging
 #ifdef DEBUGGING
-        if (n == 5) {
+        if (n == 1) {
             // TODO: this breaks if local_ny is different between processes
             // i.e. when ny is not divisible by size. 
             MPI_Gather(u.get() + nx, nx * local_ny, MPI_FLOAT, u_full->get() + nx * local_ny * rank, nx * local_ny,
