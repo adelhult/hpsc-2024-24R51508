@@ -301,7 +301,7 @@ int main(int argc, char **argv) {
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
                 std::cout << rank << ":" << std::endl;
-                b.print();
+                u.print();
                 u_full->save_on_disk("./u.txt");
                 v_full->save_on_disk("./v.txt");
                 p_full->save_on_disk("./p.txt");
