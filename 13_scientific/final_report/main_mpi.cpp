@@ -96,10 +96,10 @@ int main(int argc, char **argv) {
     std::cout << "local_ny: " << local_ny << std::endl;
     // We add an extra "ghost row" at the top and bottom (not really needed for the first and last row,
     // but let's keep it simple).
-    auto u = Matrix<float>(local_ny + 2, nx, 0.0);
-    auto v = Matrix<float>(local_ny + 2, nx, 0.0);
-    auto p = Matrix<float>(local_ny + 2, nx, 0.0);
-    auto b = Matrix<float>(local_ny + 2, nx, 0.0);
+    auto u = Matrix<float>(local_ny + 2, nx, (rank + 1) * 10.0);
+    auto v = Matrix<float>(local_ny + 2, nx, (rank + 1) * 10.0);
+    auto p = Matrix<float>(local_ny + 2, nx, (rank + 1) * 10.0);
+    auto b = Matrix<float>(local_ny + 2, nx, (rank + 1) * 10.0);
 
     // Also, to make it easier to debug and save the final matrix we
     // store the matrix in its entirety at the first process.
