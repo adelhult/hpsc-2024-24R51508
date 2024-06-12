@@ -282,7 +282,7 @@ int main(int argc, char **argv) {
                       v.get() + (local_ny + 1) * nx, nx, MPI_FLOAT,
                       next, 0, MPI_COMM_WORLD, &requests_u_v[3]);
 
-        MPI_Waitall(2, requests_u_v, MPI_STATUS_IGNORE);
+        MPI_Waitall(4, requests_u_v, MPI_STATUS_IGNORE);
 
 
         // Debugging
