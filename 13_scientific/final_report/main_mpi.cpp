@@ -304,7 +304,7 @@ int main(int argc, char **argv) {
             if (rank == 0) {
                 displacements[0] = 0;
                 for (auto i = 1; i < size; i++) {
-                    displacements[i] = displacements[i - 1] + receive_counts;
+                    displacements[i] = displacements[i - 1] + receive_counts[i - 1];
                 }
             }
 
