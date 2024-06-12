@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
     const auto local_ny = all_local_ny[rank]; 
 
 
-    std::cout << "rank " << rank << "will process " << local_ny << " rows" << std::endl;
+    std::cout << "rank " << rank << " will process " << local_ny << " rows" << std::endl;
     // We add an extra "ghost row" at the top and bottom (not really needed for the first and last row,
     // but let's keep it simple).
     auto u = Matrix<float>(local_ny + 2, nx, 0.0);
