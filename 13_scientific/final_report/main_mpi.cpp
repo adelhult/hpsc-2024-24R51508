@@ -304,10 +304,10 @@ int main(int argc, char **argv) {
                 }
             }
 
-            MPI_Gatherv(u.get() + nx, local_ny * nx, MPI_FLOAT, u_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gatherv(v.get() + nx, local_ny * nx, MPI_FLOAT, v_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gatherv(b.get() + nx, local_ny * nx, MPI_FLOAT, b_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gatherv(p.get() + nx, local_ny * nx, MPI_FLOAT, p_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(u.get() + nx, local_ny * nx, MPI_FLOAT, u_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(v.get() + nx, local_ny * nx, MPI_FLOAT, v_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(b.get() + nx, local_ny * nx, MPI_FLOAT, b_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(p.get() + nx, local_ny * nx, MPI_FLOAT, p_full->get(), all_local_ny, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
