@@ -101,6 +101,7 @@ for n in range(nt):
         #print("b:")
         #print((read_file("./final_report/b.txt") - b) < error_margin)
         assert ((read_file("./final_report/b.txt") - b) < error_margin).all()
+        print("Comparison with reference implementation was completed without errors")
         break
 
     # plt.contourf(X, Y, p, alpha=0.5, cmap=plt.cm.coolwarm)
