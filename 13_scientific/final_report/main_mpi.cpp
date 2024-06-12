@@ -87,11 +87,16 @@ int main(int argc, char **argv) {
     const float nu = 0.02f;
 
     // Determine number of rows needed locally
-    int local_ny = ny / size;
     int remainder = ny % size;
-    if (rank < remainder) {
-        local_ny++;
+    int all_local_ny[size];
+    for (auto i = 0; i < size; i++) {
+        all_local_ny[i] = ny/size;
+        if (i < remainder) {
+            all_local_ny[i]++;
+        }
     }
+    const auto local_ny = all_local_ny[rank]; 
+
 
     std::cout << "local_ny: " << local_ny << std::endl;
     // We add an extra "ghost row" at the top and bottom (not really needed for the first and last row,
@@ -113,7 +118,7 @@ int main(int argc, char **argv) {
 
     // Used to send my rows to neighbors
     // Note: here I let the grid loop around and send messages between the last and first process
-    // but they just ignore those ghost rows when calculating the actual values later!
+    // (but they just ignore those ghost rows when calculating the actual values later!)
     auto prev = (rank - 1 + size) % size;
     auto next = (rank + 1) % size;
     const int FIRST_ROW_TAG = 1;
@@ -291,20 +296,21 @@ int main(int argc, char **argv) {
         // Debugging
 #ifdef DEBUGGING
         if (n == 5) {
-            // TODO: this breaks if local_ny is different between processes
-            // i.e. when ny is not divisible by size. 
-            MPI_Gather(u.get() + nx, nx * local_ny, MPI_FLOAT, u_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(v.get() + nx, nx * local_ny, MPI_FLOAT, v_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            int displacements[size];
+            if (rank == 0) {
+                displacements[0] = 0;
+                for (int i = 1; i < size; i++) {
+                    displacements[i] = displacements[i - 1] + all_local_ny[i - 1] * nx;
+                }
+            }
+
+            MPI_Gatherv(u.get() + nx, local_ny * nx, MPI_FLOAT, u_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(v.get() + nx, local_ny * nx, MPI_FLOAT, v_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(b.get() + nx, local_ny * nx, MPI_FLOAT, b_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(p.get() + nx, local_ny * nx, MPI_FLOAT, p_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
-                std::cout << rank << ":" << std::endl;
-                u.print();
                 u_full->save_on_disk("./u.txt");
                 v_full->save_on_disk("./v.txt");
                 p_full->save_on_disk("./p.txt");
