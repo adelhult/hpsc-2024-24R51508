@@ -27,5 +27,6 @@ python3 10_cavity.py
 
 ## Explanation
 Also, here is a simple illustration to try explain the main idea of how the data is distributed.
-![image](https://github.com/adelhult/hpsc-2024-24R51508/assets/11508459/52f706d8-7a45-4f4d-9a58-8c5bf2a66f7e)
+![image](https://github.com/adelhult/hpsc-2024-24R51508/assets/11508459/c8f008d8-a8a4-44cf-9fab-87e7e2adb99d)
+
 
