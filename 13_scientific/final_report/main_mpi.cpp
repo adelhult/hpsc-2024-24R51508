@@ -315,7 +315,7 @@ int main(int argc, char **argv) {
 
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
-                u_full->save_on_disk("./u.txt");
+                u_full->save_on_disk("./u.txt");all_local_ny
                 v_full->save_on_disk("./v.txt");
                 p_full->save_on_disk("./p.txt");
                 b_full->save_on_disk("./b.txt");
