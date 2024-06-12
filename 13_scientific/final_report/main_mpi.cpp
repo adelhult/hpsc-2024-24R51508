@@ -290,14 +290,23 @@ int main(int argc, char **argv) {
         if (n == 1) {
             // TODO: this breaks if local_ny is different between processes
             // i.e. when ny is not divisible by size. 
-            MPI_Gather(u.get() + nx, nx * local_ny, MPI_FLOAT, u_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(v.get() + nx, nx * local_ny, MPI_FLOAT, v_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(b.get() + nx, nx * local_ny, MPI_FLOAT, b_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
-            MPI_Gather(p.get() + nx, nx * local_ny, MPI_FLOAT, p_full->get() + nx * local_ny * rank, nx * local_ny,
-                       MPI_FLOAT, 0, MPI_COMM_WORLD);
+            int local_sizes[size];
+            int displacements[size];
+
+            MPI_Gather(&local_ny, 1, MPI_INT, local_sizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+            if (rank == 0) {
+                displacements[0] = 0;
+                for (int i = 1; i < size; i++) {
+                    displacements[i] = displacements[i - 1] + local_sizes[i - 1] * nx;
+                }
+            }
+
+            MPI_Gatherv(u.get() + nx, local_ny * nx, MPI_FLOAT, u_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(v.get() + nx, local_ny * nx, MPI_FLOAT, v_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(b.get() + nx, local_ny * nx, MPI_FLOAT, b_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_Gatherv(p.get() + nx, local_ny * nx, MPI_FLOAT, p_full->get(), local_sizes, displacements, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
             if (rank == 0) {
                 std::cout << "Saved debug files" << std::endl;
                 std::cout << rank << ":" << std::endl;
