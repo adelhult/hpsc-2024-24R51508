@@ -86,6 +86,7 @@ for n in range(nt):
     # Debugging
     if (n == 5):
         error_margin = 1e-3 # rounding differences? (At least I hopes so :sweat: !)
+        print((read_file("./final_report/u.txt") - u) < error_margin)
         assert ((read_file("./final_report/u.txt") - u) < error_margin).all()
         assert ((read_file("./final_report/v.txt") -v) < error_margin).all()
         assert ((read_file("./final_report/p.txt") -p) < error_margin).all()
