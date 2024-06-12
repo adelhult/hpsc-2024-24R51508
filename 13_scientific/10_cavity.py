@@ -84,7 +84,7 @@ for n in range(nt):
     v[:, -1] = 0
 
     # Debugging
-    if (n == 1):
+    if (n == 5):
         error_margin = 1e-3 # rounding differences? (At least I hopes so :sweat: !)
         print("u:")
         print((read_file("./final_report/u.txt") - u) < error_margin)
