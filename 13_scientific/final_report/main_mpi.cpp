@@ -241,6 +241,13 @@ int main(int argc, char **argv) {
             }
         }
 
+        for (auto i = 0; i < rows; i++) {
+            u(i, 0) = 0;
+            u(i, cols - 1) = 0;
+            v(i, 0) = 0;
+            v(i, cols - 1) = 0;
+        }
+
         // The last row
         if (rank == size - 1) {
             for (auto j = 0; j < cols; j++) {
@@ -248,13 +255,6 @@ int main(int argc, char **argv) {
                 v(rows - 2, j) = 0; // v[-1, :] = 0
                 // Note: It's -2 and not -1 due to the ghost row
             }
-        }
-
-        for (auto i = 0; i < rows; i++) {
-            u(i, 0) = 0;
-            u(i, cols - 1) = 0;
-            v(i, 0) = 0;
-            v(i, cols - 1) = 0;
         }
 
         // Send ghost rows to neigbors
